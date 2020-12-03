@@ -36,42 +36,19 @@ let deconstructMatch ( regexMatch : Match ) =
 [<EntryPoint>]
 let main argv =
     let filename = match argv with
-    | [| filename |] ->
-        Some(filename)
-    | _ -> None
+    | [| filename |] -> filename
 
-    let rawEntries = match filename with
-    | Some(f) -> Some(File.ReadLines(f))
-    | _ -> None
-
+    let rawEntries = File.ReadLines(filename)
     let pattern = "(?<minimum>\\d+)-(?<maximum>\\d+) (?<pattern>.): (?<candidate>.+)"
     let regex = Regex(pattern)
-    let entries = match rawEntries with 
-    | Some(es) -> Some(
-            Seq.map ((fun e -> (regex.Match e)) >> deconstructMatch) es
-        )
-    | _ -> None
+    let entries = Seq.map ((fun e -> (regex.Match e)) >> deconstructMatch) rawEntries
 
-    let validities = match entries with
-    | Some(entries) -> Some(Seq.map (fun e -> match e with | (a,b,c,d) -> isValid a b c d) entries)
-    | _ -> None
-
-    let count = match validities with
-    | Some(vs) -> Seq.filter id vs |> List.ofSeq |> List.length |> Some
-    | _ -> None
-
-    match count with
-    | Some(c) -> printfn "%d" c
-
-    let validities2 = match entries with
-    | Some(entries) -> Some(Seq.map (fun e -> match e with | (a,b,c,d) -> isValidTwo a b c d) entries)
-    | _ -> None
-
-    let count2 = match validities2 with
-    | Some(vs) -> Seq.filter id vs |> List.ofSeq |> List.length |> Some
-    | _ -> None
-
-    match count2 with
-    | Some(c) -> printfn "%d" c
+    let validities = Seq.map (fun e -> match e with | (a,b,c,d) -> isValid a b c d) entries
+    let count = Seq.filter id validities |> List.ofSeq |> List.length
+    printfn "%d" count
+    
+    let validities2 = Seq.map (fun e -> match e with | (a,b,c,d) -> isValidTwo a b c d) entries
+    let count2 = Seq.filter id validities2 |> List.ofSeq |> List.length
+    printfn "%d" count2
 
     0 // return an integer exit code
