@@ -10,13 +10,13 @@ SLOPES_TO_CHECK = [
 
 def load_input_file(filepath):
     with open(filepath, "r") as inf:
-        return [line for line in inf]
+        return [line.strip() for line in inf]
 
 def count_trees_on_slope(scene, right = 3, down = 1):
     count = 0
     x_coord = 0
     y_coord = 0
-    width = len(scene[0]) - 1
+    width = len(scene[0])
     while y_coord < len(scene):
         if scene[y_coord][x_coord] == "#":
             count += 1
