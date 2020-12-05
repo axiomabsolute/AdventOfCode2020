@@ -25,9 +25,40 @@ def calculate_row_column(bsp):
 
     return row, column
 
+def deconstruct_seat(seat):
+    row = seat // 8
+    column = seat % 8
+    return row, column
+
+def generate_seats_in_range(start, end):
+    start_row, start_column = deconstruct_seat(start)
+    end_row, end_column = deconstruct_seat(end)
+
+    r, c = start_row, start_column
+    current = start
+    while current <= end:
+        yield current
+        c = (c + 1) % 8
+        if c == 0:
+            r = r + 1
+        current = calculate_seat(r, c)
+
 if __name__ == "__main__":
     filepath = sys.argv[1]
 
     with open(filepath, "r") as inf:
-        seats = [calculate_seat(*calculate_row_column(line.strip())) for line in inf]
-        print(max(seats))
+        seats = {calculate_seat(*calculate_row_column(line.strip())) for line in inf}
+
+        min_seat = min(seats)
+        max_seat = max(seats)
+
+        print(f"Min seat: {min_seat}")
+        print(f"Max seat: {max_seat}")
+
+        seats_in_range = [x for x in generate_seats_in_range(min_seat, max_seat)]
+        empty_seats = [x for x in seats_in_range if x not in seats]
+
+        print(len(seats_in_range))
+
+        print(empty_seats)
+
