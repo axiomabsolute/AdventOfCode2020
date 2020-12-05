@@ -3,10 +3,18 @@ import sys
 
 TOTAL_ROWS = 128
 
-def calculate_seat(row, column):
+def seat_coordinates_to_seat_id(row, column):
     return 8*row + column
 
+def seat_id_to_coordinates(seat):
+    row = seat // 8
+    column = seat % 8
+    return row, column
+
 def interval_reducer_generator(first_half):
+    """ Constructs an interval reducer using first_half as the character indicating that the
+        result is in the first half of the previous interval
+    """
     def interval_reducer(interval, coordinate):
         interval_start, interval_end = interval
         half_interval_width = (interval_end - interval_start) / 2
@@ -16,7 +24,7 @@ def interval_reducer_generator(first_half):
     return interval_reducer
 
 
-def calculate_row_column(bsp):
+def bsp_to_seat_coordinates(bsp):
     row_bsp = bsp[:7]
     column_bsp = bsp[7:]
     
@@ -25,14 +33,9 @@ def calculate_row_column(bsp):
 
     return row, column
 
-def deconstruct_seat(seat):
-    row = seat // 8
-    column = seat % 8
-    return row, column
-
 def generate_seats_in_range(start, end):
-    start_row, start_column = deconstruct_seat(start)
-    end_row, end_column = deconstruct_seat(end)
+    start_row, start_column = seat_id_to_coordinates(start)
+    end_row, end_column = seat_id_to_coordinates(end)
 
     r, c = start_row, start_column
     current = start
@@ -41,13 +44,13 @@ def generate_seats_in_range(start, end):
         c = (c + 1) % 8
         if c == 0:
             r = r + 1
-        current = calculate_seat(r, c)
+        current = seat_coordinates_to_seat_id(r, c)
 
 if __name__ == "__main__":
     filepath = sys.argv[1]
 
     with open(filepath, "r") as inf:
-        seats = {calculate_seat(*calculate_row_column(line.strip())) for line in inf}
+        seats = {seat_coordinates_to_seat_id(*bsp_to_seat_coordinates(line.strip())) for line in inf}
 
         min_seat = min(seats)
         max_seat = max(seats)
