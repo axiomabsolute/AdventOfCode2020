@@ -1,0 +1,1 @@
+`crystal run daysix.cr --error-trace`
