@@ -10,7 +10,7 @@ def part_one(instructions):
         if i in visited:
             return acc, instruction_sequence, True
         else:
-            if i == len(instructions):
+            if i >= len(instructions):
                 break
             prev = i
             visited.add(i)
