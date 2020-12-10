@@ -1,5 +1,14 @@
 from collections import Counter
+import functools
 import sys
+
+@functools.lru_cache
+def valid_combinations(entry, entries_set, final):
+    if entry == final:
+        return 1
+    if entry not in entries_set:
+        return 0
+    return valid_combinations(entry + 1, entries_set, final) + valid_combinations(entry + 2, entries_set, final) + valid_combinations(entry + 3, entries_set, final)
 
 if __name__ == "__main__":
     filename = sys.argv[1]
@@ -18,3 +27,5 @@ if __name__ == "__main__":
     counter = Counter(differences)
 
     print(counter[3] * counter[1])
+
+    print(f"Valid combinations: {valid_combinations(0, frozenset(sorted_entries), sorted_entries[-1])}")
