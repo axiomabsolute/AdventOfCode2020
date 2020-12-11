@@ -2,19 +2,25 @@ from collections import Counter
 from itertools import chain
 import sys
 
+def get_neighbors(n_row, n_col, row, col):
+    return [
+        (r, c)
+        for r in range(max(row - 1, 0), min(row + 2, n_row))
+        for c in range(max(col - 1, 0), min(col + 2, n_col))
+        if not (r == row and c == col)
+    ]
+
 def get_adjacent_seats(layout, row, col):
-    adjacent_seats = []
-    for r in range(row - 1, row + 2):
-        for c in range(col - 1, col + 2):
-            if r >= 0 and r < len(layout) and c >= 0 and c < len(layout[r]):
-                if not (r == row and c == col):
-                    adjacent_seats.append(layout[r][c])
-    return adjacent_seats
+    return [
+        layout[r][c] for r,c in get_neighbors(len(layout), len(layout[0]), row, col)
+    ]
 
 def get_next_visible_seat(layout, row, col, rise, run):
     nrow = row + rise
     ncol = col + run
-    while nrow < len(layout) and ncol < len(layout[row]) and nrow >= 0 and ncol >= 0:
+    upper_row = len(layout)
+    upper_col = len(layout[row])
+    while 0 <= nrow < upper_row and 0 <= ncol < upper_col:
         sight = layout[nrow][ncol]
         if sight  == "L" or sight == "#":
             return sight
