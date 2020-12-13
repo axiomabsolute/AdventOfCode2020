@@ -33,7 +33,8 @@ def the_unstoppable_arrow_of_time(start, step):
         start += step
 
 def bus_filter(times, unit, offset):
-    return filter(lambda t: (t % unit) == (unit - offset), times)
+    remainder = (unit - offset) % unit
+    return filter(lambda t: (t % unit) == remainder, times)
 
 if __name__ == "__main__":
     filename = sys.argv[1]
@@ -52,7 +53,8 @@ if __name__ == "__main__":
     biggest_bus_id = find_biggest_bus_id(indexed_bus_ids)
     reframed = reframe(indexed_bus_ids, biggest_bus_id)
 
-    times = the_unstoppable_arrow_of_time(0, indexed_bus_ids[0][1])
-    for offset, bus_id in indexed_bus_ids[1:]:
-        times = bus_filter(times, bus_id, offset)
+    times = the_unstoppable_arrow_of_time(biggest_bus_id[1] - biggest_bus_id[0], biggest_bus_id[1])
+    for offset, bus_id in indexed_bus_ids:
+        if bus_id != biggest_bus_id[1]:
+            times = bus_filter(times, bus_id, offset)
     print(next(times))
