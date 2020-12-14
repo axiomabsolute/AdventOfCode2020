@@ -20,22 +20,6 @@ def part_one_answer(bus_id, first_departure_after, after):
     to_wait = first_departure_after["at_time"] - after
     return bus_id * to_wait
 
-def find_biggest_bus_id(indexed_bus_ids):
-    return max(indexed_bus_ids, key=lambda x: x[1])
-
-def reframe(indexed_bus_ids, biggest_bus_id):
-    """Find the largest of the bunch and adjust indexes"""
-    return [(idx - biggest_bus_id[0], bus_id) for idx, bus_id in indexed_bus_ids]
-
-def the_unstoppable_arrow_of_time(start, step):
-    while True:
-        yield start
-        start += step
-
-def bus_filter(times, unit, offset):
-    remainder = (unit - offset) % unit
-    return filter(lambda t: (t % unit) == remainder, times)
-
 if __name__ == "__main__":
     filename = sys.argv[1]
 
@@ -50,11 +34,15 @@ if __name__ == "__main__":
     print(part_one_answer(first_departure_after[0], first_departure_after[1], earliest_departure_time))
 
     indexed_bus_ids = [ (idx, bus_id) for idx, bus_id in enumerate(bus_ids_raw) if bus_id != "x"]
-    biggest_bus_id = find_biggest_bus_id(indexed_bus_ids)
-    reframed = reframe(indexed_bus_ids, biggest_bus_id)
 
-    times = the_unstoppable_arrow_of_time(biggest_bus_id[1] - biggest_bus_id[0], biggest_bus_id[1])
-    for offset, bus_id in indexed_bus_ids:
-        if bus_id != biggest_bus_id[1]:
-            times = bus_filter(times, bus_id, offset)
-    print(next(times))
+    result = bus_ids[0]
+    step = 1
+    for index, bus_id in enumerate(bus_ids_raw):
+        if bus_id == "x":
+            continue
+        while (result % bus_id) != ((bus_id - index) % bus_id):
+            result += step
+        step *= bus_id
+        print(f"After processing bus {bus_id} the result is {result} and step size is {step}")
+    print(f"Final Result: {result}")
+    print(f"Final Step: {step}")
