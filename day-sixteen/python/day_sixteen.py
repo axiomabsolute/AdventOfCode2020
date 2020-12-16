@@ -1,19 +1,19 @@
 from itertools import permutations
 import sys
 
-def parse_value(value_line):
-    value_name, constraint_section = value_line.split(": ")
+def parse_field(field_line):
+    field_name, constraint_section = field_line.split(": ")
     raw_constraints = constraint_section.split(" or ")
     constraints = tuple(
         tuple(int(r) for r in c.split("-")) for c in raw_constraints
     )
-    return value_name, constraints
+    return field_name, constraints
 
-def parse_values(values_section):
+def parse_fields(fields_section):
     return dict( 
-        parse_value(value_line)
-        for value_line in 
-        values_section.split("\n")
+        parse_field(field_line)
+        for field_line in 
+        fields_section.split("\n")
   )
 
 def parse_ticket(ticket_line):
@@ -28,17 +28,17 @@ def parse_nearby_tickets(nearby_tickets_section):
     return tuple( parse_ticket(l) for l in nearby_tickets_section.split("\n")[1:] )
 
 def parse(text):
-    values_section, my_ticket_section, nearby_tickets_section = text.split("\n\n")
-    values = parse_values(values_section)
+    fields_section, my_ticket_section, nearby_tickets_section = text.split("\n\n")
+    fields = parse_fields(fields_section)
     my_ticket = parse_my_ticket(my_ticket_section)
     nearby_tickets = parse_nearby_tickets(nearby_tickets_section)
-    return values, my_ticket, nearby_tickets
+    return fields, my_ticket, nearby_tickets
 
 
-def validate_ticket_numbers_not_in_any_range(ticket, values):
+def validate_ticket_numbers_not_in_any_range(ticket, fields):
     for ticket_number in ticket:
         if not any(
-            validate_field(ticket_number, constraint_set) for constraint_set in values.values()
+            validate_field(ticket_number, constraint_set) for constraint_set in fields.values()
         ):
             yield ticket_number
 
@@ -46,12 +46,12 @@ def validate_field(ticket_number, constraint_set):
     return any(lower <= ticket_number <= upper for lower, upper in constraint_set)
             
 
-def validate_tickets(nearby_tickets, values, validator):
+def validate_tickets(nearby_tickets, fields, validator):
     """ Apply a validator to each nearby ticket and return the ticket with the
     results of the validator.
     
-    Validator should return invalid ticket values, or None"""
-    return [(ticket, list(validator(ticket, values))) for ticket in nearby_tickets]
+    Validator should return invalid ticket fields, or None"""
+    return [(ticket, list(validator(ticket, fields))) for ticket in nearby_tickets]
 
 
 if __name__ == "__main__":
@@ -60,9 +60,9 @@ if __name__ == "__main__":
     with open(filename, "r") as inf:
         text = inf.read()
 
-    values, my_ticket, nearby_tickets = parse(text)
+    fields, my_ticket, nearby_tickets = parse(text)
 
-    validation_results = validate_tickets(nearby_tickets, values, validate_ticket_numbers_not_in_any_range)
+    validation_results = validate_tickets(nearby_tickets, fields, validate_ticket_numbers_not_in_any_range)
     invalid_results = [invalid_number for ticket, result in validation_results for invalid_number in result]
     print(sum(invalid_results))
 
