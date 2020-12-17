@@ -1,4 +1,4 @@
-from itertools import permutations
+from itertools import chain, product
 import sys
 
 def parse_field(field_line):
@@ -35,23 +35,41 @@ def parse(text):
     return fields, my_ticket, nearby_tickets
 
 
-def validate_ticket_numbers_not_in_any_range(ticket, fields):
-    for ticket_number in ticket:
-        if not any(
-            validate_field(ticket_number, constraint_set) for constraint_set in fields.values()
-        ):
-            yield ticket_number
+def check_ticket_number_in_range(ticket_number, constraint):
+    lower, upper = constraint
+    return lower <= ticket_number <= upper
 
-def validate_field(ticket_number, constraint_set):
-    return any(lower <= ticket_number <= upper for lower, upper in constraint_set)
-            
 
-def validate_tickets(nearby_tickets, fields, validator):
-    """ Apply a validator to each nearby ticket and return the ticket with the
-    results of the validator.
-    
-    Validator should return invalid ticket fields, or None"""
-    return [(ticket, list(validator(ticket, fields))) for ticket in nearby_tickets]
+def valid_ranges_for_ticket_number(ticket_number, constraints):
+    return [c for c in constraints if check_ticket_number_in_range(ticket_number, c)]
+
+
+def valid_constraint_sets_for_ticket_number(ticket_number, fields):
+    return [field_name for field_name, cs in fields.items() if any(check_ticket_number_in_range(ticket_number, c) for c in cs)]
+
+def get_valid_constraint_sets_positions_for_field_position(field_values, fields):
+    valid_constraint_sets = [valid_constraint_sets_for_ticket_number(t, fields) for t in field_values]
+    result = set(valid_constraint_sets[0])
+    for vcs in valid_constraint_sets[1:]:
+        result &= set(vcs)
+    return result
+
+
+def get_field_positions(valid_constraint_sets_by_field_position):
+    result = [None for _ in valid_constraint_sets_by_field_position]
+    already_picked = set()
+    while any(len(s) == 1 for s in valid_constraint_sets_by_field_position):
+        position, cs = next((i,cs) for i,cs in enumerate(valid_constraint_sets_by_field_position) if len(cs) == 1)
+        result[position] = cs
+        already_picked |= cs
+        valid_constraint_sets_by_field_position = [v - already_picked for v in valid_constraint_sets_by_field_position]
+    for position, cs in enumerate(valid_constraint_sets_by_field_position):
+        if len(cs) != 0:
+            result[position] = cs
+    for field_order in product(*result):
+        if len(field_order) != len(set(field_order)):
+            continue
+        return result
 
 
 if __name__ == "__main__":
@@ -62,9 +80,20 @@ if __name__ == "__main__":
 
     fields, my_ticket, nearby_tickets = parse(text)
 
-    validation_results = validate_tickets(nearby_tickets, fields, validate_ticket_numbers_not_in_any_range)
-    invalid_results = [invalid_number for ticket, result in validation_results for invalid_number in result]
-    print(sum(invalid_results))
+    all_constraints = [ constraint for constraint_set in fields.values() for constraint in constraint_set ]
+    invalid_ticket_numbers = [ticket_number for ticket in nearby_tickets for ticket_number in ticket if len(valid_ranges_for_ticket_number(ticket_number, all_constraints)) > 0]
+    print(f"Sum of invalid ticket numbers: {sum(invalid_ticket_numbers)}")
 
-    # valid_results = [ticket for ticket, result in validation_results if result]
+    valid_nearby_tickets = [ticket for ticket in nearby_tickets if all(len(valid_constraint_sets_for_ticket_number(t, fields)) > 0 for t in ticket)]
 
+    valid_constraint_set_positions_by_field_position = [get_valid_constraint_sets_positions_for_field_position((ticket[i] for ticket in valid_nearby_tickets), fields) for i in range(len(my_ticket))]
+
+    # print(valid_constraint_set_positions_by_field_position)
+
+    field_order = get_field_positions(valid_constraint_set_positions_by_field_position)
+    print(field_order)
+    departure_field_values = [x for i,x in enumerate(my_ticket) if field_order[i].pop().startswith("departure")]
+    result = 1
+    for d in departure_field_values:
+        result *= d
+    print(result)
