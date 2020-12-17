@@ -81,7 +81,7 @@ if __name__ == "__main__":
     fields, my_ticket, nearby_tickets = parse(text)
 
     all_constraints = [ constraint for constraint_set in fields.values() for constraint in constraint_set ]
-    invalid_ticket_numbers = [ticket_number for ticket in nearby_tickets for ticket_number in ticket if len(valid_ranges_for_ticket_number(ticket_number, all_constraints)) > 0]
+    invalid_ticket_numbers = [ticket_number for ticket in nearby_tickets for ticket_number in ticket if len(valid_ranges_for_ticket_number(ticket_number, all_constraints)) == 0]
     print(f"Sum of invalid ticket numbers: {sum(invalid_ticket_numbers)}")
 
     valid_nearby_tickets = [ticket for ticket in nearby_tickets if all(len(valid_constraint_sets_for_ticket_number(t, fields)) > 0 for t in ticket)]
