@@ -1,17 +1,20 @@
+from itertools import product
 import sys
 
-def parse_input(lines):
+def parse_input(lines, dimensions):
+    pad_by = dimensions - 2
+    zeros = tuple(0 for n in range(pad_by))
     for y, row in enumerate(lines):
         for x, state in enumerate(row):
             if state == "#":
-                yield (x, y, 0)
+                result = (x, y, *zeros)
+                yield result
 
-def generate_neighbors(x, y, z):
-    for j in range(x-1, x+2):
-        for k in range(y-1, y+2):
-            for l in range(z-1, z+2):
-                if not (j == x and k == y and l == z):
-                    yield (j, k, l)
+def generate_neighbors(*coord):
+    neighbors_by_coord = (tuple(t) for t in product(*(range(c-1, c+2) for c in coord)))
+    for n in neighbors_by_coord:
+        if n != coord:
+            yield n
 
 def cycle(initial_state):
     """initial_state is a set of active (x, y, z) coordinates"""
@@ -45,9 +48,10 @@ def part_one(state):
 if __name__ == "__main__":
     filename = sys.argv[1]
     cycles = int(sys.argv[2])
+    dimensions = int(sys.argv[3])
 
     with open(filename, "r") as inf:
-        initial_state = set(parse_input(inf))
+        initial_state = set(parse_input(inf, dimensions))
 
     result = game(initial_state, cycles)
 
