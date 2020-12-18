@@ -1,20 +1,23 @@
 import ast
 import sys
 
-MULT_NODE = ast.parse("1 * 1", mode="eval").body
-MINUS_NODE = ast.parse("1 - 1", mode="eval").body
-ADD_NODE = ast.parse("1 + 1", mode="eval").body
-
 class MinusOpTransformer(ast.NodeTransformer):
     def visit_BinOp(self, node):
-        if node.op == MINUS_NODE.op:
-            node.op = MULT_NODE.op
+        if isinstance(node.op, ast.Sub):
+            node.op = ast.Mult()
         node.left = self.visit(node.left)
         node.right = self.visit(node.right)
         return node
 
-class SwapAddMultTransformer(ast.NodeTransformer):
-    pass
+class SwapMinusDivTransformer(ast.NodeTransformer):
+    def visit_BinOp(self, node):
+        if isinstance(node.op, ast.Sub):
+            node.op = ast.Mult()
+        elif isinstance(node.op, ast.Div):
+            node.op = ast.Add()
+        node.left = self.visit(node.left)
+        node.right = self.visit(node.right)
+        return node
 
 if __name__ == "__main__":
     filename = sys.argv[1]
@@ -35,4 +38,13 @@ if __name__ == "__main__":
     values = [eval(compile(program, "<string>", "eval")) for program in xformed]
     part_one = sum(values)
     print(f"Part One: {part_one}")
+
+    # Two part swap
+    lines2 = [l.replace("*", "-").replace("+", "/") for l in original_lines]
+    asts2 = [ast.parse(l, mode="eval") for l in lines2]
+    xform2 = SwapMinusDivTransformer()
+    xformed2 = [xform2.visit(a) for a in asts2]
+    values2 = [eval(compile(program, "<string>", "eval")) for program in xformed2]
+    part_two = sum(values2)
+    print(f"Part Two: {part_two}")
     
