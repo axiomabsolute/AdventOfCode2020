@@ -25,7 +25,11 @@ if __name__ == "__main__":
     with open(filename, "r") as inf:
         # Replace * with - because they have the same precedence
         original_lines = [l for l in inf]
-        lines = [l.replace("*", "-") for l in original_lines]
+
+    # Swap the "*" operator for "-" because they have the same precedence order
+    # We do this because we want to re-use Python's built-in operator ordering so
+    # we don't have to write a new parser.
+    lines = [l.replace("*", "-") for l in original_lines]
 
     # Parse the AST for the line
     asts = [ast.parse(l, mode="eval") for l in lines]
@@ -34,12 +38,14 @@ if __name__ == "__main__":
     xform = MinusOpTransformer()
     xformed = [xform.visit(a) for a in asts]
 
-    # Print results
+    # Evaluate
     values = [eval(compile(program, "<string>", "eval")) for program in xformed]
+    # Print part one results
     part_one = sum(values)
     print(f"Part One: {part_one}")
 
-    # Two part swap
+    # Part two - similar to part one, but swap "*" for "-" and "+" for "/", effectively swapping precedence order
+    # during parsing, then swap back using the AST transformer
     lines2 = [l.replace("*", "-").replace("+", "/") for l in original_lines]
     asts2 = [ast.parse(l, mode="eval") for l in lines2]
     xform2 = SwapMinusDivTransformer()
