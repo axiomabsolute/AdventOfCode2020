@@ -1,6 +1,7 @@
 import ast
 import sys
 
+
 class MinusOpTransformer(ast.NodeTransformer):
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Sub):
@@ -8,6 +9,7 @@ class MinusOpTransformer(ast.NodeTransformer):
         node.left = self.visit(node.left)
         node.right = self.visit(node.right)
         return node
+
 
 class SwapMinusDivTransformer(ast.NodeTransformer):
     def visit_BinOp(self, node):
@@ -18,6 +20,7 @@ class SwapMinusDivTransformer(ast.NodeTransformer):
         node.left = self.visit(node.left)
         node.right = self.visit(node.right)
         return node
+
 
 if __name__ == "__main__":
     filename = sys.argv[1]
@@ -53,4 +56,3 @@ if __name__ == "__main__":
     values2 = [eval(compile(program, "<string>", "eval")) for program in xformed2]
     part_two = sum(values2)
     print(f"Part Two: {part_two}")
-    
