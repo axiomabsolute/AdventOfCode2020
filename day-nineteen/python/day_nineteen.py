@@ -104,14 +104,14 @@ def compile_patterns(rules, compilation_target=subpatterns_to_regex):
 def count_suffix(patterns, message, count = 0):
     ends_with_any = any(message.endswith(p) for p in patterns)
     if not ends_with_any:
-        return count
+        return count, message
     return count_suffix(patterns, message[:-1 * len(patterns[0])], count + 1)
 
 
 def count_prefix(patterns, message, count = 0):
     starts_with_any = any(message.startswith(p) for p in patterns)
     if not starts_with_any:
-        return count
+        return count, message
     return count_prefix(patterns, message[len(patterns[0]):], count + 1)
 
 
@@ -130,7 +130,13 @@ if __name__ == "__main__":
     updated_rules = {**rules, **rule_updates}
     updated_compiled_patterns = compile_patterns(updated_rules, subpatterns_to_literals)[0]
 
-    prefix_counts = [count_prefix(updated_compiled_patterns["42"], m) for m in messages]
-    suffix_counts = [count_suffix(updated_compiled_patterns["31"], m) for m in messages]
-    print(sum(1 for i,p in enumerate(prefix_counts) if p > suffix_counts[i] and p != 0 and suffix_counts[i] != 0))
+    prefix_counts_and_messages = [count_prefix(updated_compiled_patterns["42"], m) for m in messages]
+    prefix_counts = [p[0] for p in prefix_counts_and_messages]
+    suffix_counts_and_messages = [count_suffix(updated_compiled_patterns["31"], m) for _,m in prefix_counts_and_messages]
+    suffix_counts = [s[0] for s in suffix_counts_and_messages]
+    residuals = [s[1] for s in suffix_counts_and_messages]
+    print(sum(
+        1 for p,s,r in zip(prefix_counts, suffix_counts, residuals)
+        if p != 0 and s != 0 and len(r) == 0 and p > s
+    ))
     
